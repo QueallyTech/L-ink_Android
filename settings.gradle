@@ -15,3 +15,6 @@ dependencyResolutionManagement {
 }
 rootProject.name = "L-ink_Android"
 include ':app'
+include ':st25.android.reader.interface'
+include ':opencv'
+project(":opencv").projectDir = file("OpenCV-android-sdk/sdk")

@@ -1,0 +1,26 @@
+--- OpenCV-android-sdk/sdk/build.gradle	2023-06-28 12:45:08.000000000 +0000
++++ OpenCV-android-sdk/sdk/build.gradle	2023-06-28 12:45:08.000000001 +0000
+@@ -97,7 +97,7 @@ def openCVersionCode = ((4 * 100 + 8) *
+ println "OpenCV: " +openCVersionName + " " + project.buildscript.sourceFile
+ 
+ android {
+-    
++    namespace 'org.opencv'
+     compileSdkVersion 26
+ 
+     defaultConfig {
+@@ -120,7 +120,13 @@ android {
+         targetCompatibility JavaVersion.VERSION_1_8
+     }
+ 
+-    
++    kotlinOptions {
++        jvmTarget = "1.8"
++    }
++
++    buildFeatures {
++        aidl true
++    }
+ 
+     buildTypes {
+         debug {

@@ -16,6 +16,9 @@ android {
         versionName "0.0"
         externalNativeBuild {
             cmake {
+                arguments "-DOpenCV_DIR=" + file('../OpenCV-android-sdk').absolutePath + "/sdk/native/jni",
+                        "-DANDROID_TOOLCHAIN=clang",
+                        "-DANDROID_STL=c++_shared"
                 cppFlags ''
             }
         }
@@ -45,5 +48,12 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.core:core-ktx:1.10.1'
+
+    // ST25SDK
+    implementation project(':st25.android.reader.interface')
+    implementation files('libs/st25sdk/st25sdk-1.10.0.jar')
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    // OpenCV
+    implementation project(':opencv')
 
 }
