@@ -19,6 +19,23 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Link"
-        tools:targetApi="29" />
+        tools:targetApi="29" >
 
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:theme="@style/Theme.UCrop"
+            android:screenOrientation="unspecified" />
+        <activity
+            android:name="com.winfo.photoselector.ImageSelectorActivity"
+            android:theme="@style/Theme.PhotosSelector"
+            android:configChanges="screenSize|orientation|keyboardHidden" />
+        <activity
+            android:name="com.winfo.photoselector.PreviewActivity"
+            android:theme="@style/Theme.PhotosSelector"
+            android:configChanges="screenSize|orientation|keyboardHidden" />
+        <activity
+            android:name="com.winfo.photoselector.RvPreviewActivity"
+            android:theme="@style/Theme.PhotosSelector"
+            android:configChanges="screenSize|orientation|keyboardHidden" />
+    </application>
 </manifest>

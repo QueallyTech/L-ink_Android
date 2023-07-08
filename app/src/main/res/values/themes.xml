@@ -4,4 +4,11 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
     </style>
+    <style name="Theme.PhotosSelector" parent="@style/Theme.Link">
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/colorPrimary</item>
+    </style>
+    <style name="Theme.UCrop" parent="@style/Theme.PhotosSelector">
+        <item name="android:windowBackground">@color/white</item>
+    </style>
 </resources>
