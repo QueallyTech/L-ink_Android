@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.22.1)
 
 # Declares and names the project.
 
-project("nfc")
+project("dithering")
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -16,13 +16,13 @@ project("nfc")
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-             nfc
+            dithering
 
              # Sets the library as a shared library.
              SHARED
 
              # Provides a relative path to your source file(s).
-             nfc.cpp )
+             dithering.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -43,7 +43,7 @@ find_package(OpenCV 4.8 REQUIRED java)
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       nfc
+                       dithering
                        ${OpenCV_LIBRARIES}
 
                        # Links the target library to the log library
