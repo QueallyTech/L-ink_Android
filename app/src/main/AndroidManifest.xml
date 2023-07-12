@@ -16,26 +16,70 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Link"
-        tools:targetApi="29" >
+        tools:targetApi="29">
 
         <activity
+            android:name="com.queallytech.nfc.activity.MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data
+                    android:host="github.com"
+                    android:pathPrefix="/QueallyTech"
+                    android:scheme="https" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.nfc.action.TECH_DISCOVERED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.nfc.action.TECH_DISCOVERED"
+                android:resource="@xml/filter_nfc" />
+        </activity>
+        <activity
+            android:name="com.queallytech.nfc.activity.QrCodeActivity"
+            android:theme="@style/Theme.PhotosSelector" />
+        <activity
+            android:name="com.queallytech.nfc.activity.NoteActivity"
+            android:theme="@style/Theme.PhotosSelector" />
+        <activity
+            android:name="com.queallytech.nfc.activity.SendEpdActivity"
+            android:exported="true"
+            android:launchMode="singleTask" />
+        <activity
             android:name="com.yalantis.ucrop.UCropActivity"
-            android:theme="@style/Theme.UCrop"
-            android:screenOrientation="unspecified" />
+            android:screenOrientation="unspecified"
+            android:theme="@style/Theme.UCrop" />
         <activity
             android:name="com.winfo.photoselector.ImageSelectorActivity"
-            android:theme="@style/Theme.PhotosSelector"
-            android:configChanges="screenSize|orientation|keyboardHidden" />
+            android:configChanges="screenSize|orientation|keyboardHidden"
+            android:theme="@style/Theme.PhotosSelector" />
         <activity
             android:name="com.winfo.photoselector.PreviewActivity"
-            android:theme="@style/Theme.PhotosSelector"
-            android:configChanges="screenSize|orientation|keyboardHidden" />
+            android:configChanges="screenSize|orientation|keyboardHidden"
+            android:theme="@style/Theme.PhotosSelector" />
         <activity
             android:name="com.winfo.photoselector.RvPreviewActivity"
-            android:theme="@style/Theme.PhotosSelector"
-            android:configChanges="screenSize|orientation|keyboardHidden" />
+            android:configChanges="screenSize|orientation|keyboardHidden"
+            android:theme="@style/Theme.PhotosSelector" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.queallytech.nfc.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/paths" />
+        </provider>
     </application>
 </manifest>

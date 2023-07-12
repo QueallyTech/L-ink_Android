@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        app:srcCompat="@mipmap/checkerboard"/>
+
+    <com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
+        android:id="@+id/image_view_canvas"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <ImageView
+        android:id="@+id/image_process_mask"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="#ffffff"/>
+
+    <com.queallytech.nfc.utils.ui.SlideLayout
+        android:id="@+id/slider"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_gravity="bottom"
+        android:layout_margin="20dp"
+        android:background="#00000000"
+        android:elevation="15dp">
+
+        <FrameLayout
+            android:layout_width="60dp"
+            android:layout_height="match_parent">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="1px"
+            android:background="@drawable/shape_slide_background"/>
+
+        <com.wang.avi.AVLoadingIndicatorView
+            android:id="@+id/loading_indicator_view"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginEnd="6dp"
+            android:padding="5dp"
+            app:indicatorName="BallPulseIndicator"/>
+
+        <ImageView
+            android:id="@+id/slide_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginEnd="6dp"
+            android:padding="5dp"
+            android:src="@mipmap/icon_slide_picture"/>
+        </FrameLayout>
+    </com.queallytech.nfc.utils.ui.SlideLayout>
+
+    <ImageView
+        android:id="@+id/image_process_arrow"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="50dp"
+        android:layout_marginBottom="20dp"
+        app:srcCompat="@mipmap/icon_slide_arrow"/>
+
+    <ImageView
+        android:id="@+id/image_compare_button"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:alpha="0.9"
+        android:elevation="30dp"
+        app:srcCompat="@mipmap/icon_image_compare_button"/>
+
+</FrameLayout>

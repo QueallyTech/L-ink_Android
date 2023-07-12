@@ -1,4 +1,16 @@
 <resources>
     <string name="app_name">L-ink</string>
     <string name="algorithm">算法</string>
+    <string name="gen_qrcode">生成二维码</string>
+    <string name="select_logo">选取logo</string>
+    <string name="select_img">选取代替黑色色块的图片</string>
+    <string name="qrcode_content">二维码内容：</string>
+    <string name="qrcode_hight">二维码高度：</string>
+    <string name="qrcode_width">二维码宽度：</string>
+    <string name="qrcode_border">空白边距：</string>
+    <string name="qrcode_tolerance">容错率：</string>
+    <string name="qrcode_whiteblock">白色色块：</string>
+    <string name="qrcode_blackblock">黑色色块：</string>
+    <string name="select_algorithm">选择算法</string>
+    <string name="input_note">请输入笔记</string>
 </resources>
