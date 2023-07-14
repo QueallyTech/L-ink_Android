@@ -61,8 +61,8 @@ dependencies {
     implementation 'com.github.k0shk0sh:PermissionHelper:1.1.0'
     // SubscalView
     implementation 'com.davemorrissey.labs:subsampling-scale-image-view-androidx:3.10.0'
-    // PhotoSelector
-    implementation 'com.winfo.photoselector:PhotoSelector:1.2.1'
+    // Ucrop
+    implementation 'com.github.yalantis:ucrop:2.2.8'
     // ZXing
     implementation 'com.google.zxing:core:3.5.1'
 

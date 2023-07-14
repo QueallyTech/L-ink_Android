@@ -2,13 +2,10 @@ package com.queallytech.nfc.base;
 
 import android.animation.Animator;
 import android.annotation.SuppressLint;
-import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -24,8 +21,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.core.content.ContextCompat;
-import androidx.exifinterface.media.ExifInterface;
+import androidx.appcompat.app.AlertDialog;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 import androidx.vectordrawable.graphics.drawable.PathInterpolatorCompat;
 
@@ -37,10 +33,9 @@ import com.queallytech.nfc.utils.ui.DropDownMessage;
 import com.queallytech.nfc.utils.ui.FullScreenActivityBase;
 import com.queallytech.nfc.utils.ui.SlideLayout;
 import com.wang.avi.AVLoadingIndicatorView;
-import com.winfo.photoselector.PhotoSelector;
+import com.yalantis.ucrop.UCrop;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 
 public abstract class SendEpdBase extends FullScreenActivityBase implements SlideLayout.onProgressChangedListener {
@@ -60,7 +55,6 @@ public abstract class SendEpdBase extends FullScreenActivityBase implements Slid
     protected Uri tmpUri;
     protected boolean mIsProcessing = false;
     private boolean confirm_exit = false;
-    public static final int CROP = 1;
 
     protected abstract void onImageSelected(String str);
 
@@ -76,16 +70,7 @@ public abstract class SendEpdBase extends FullScreenActivityBase implements Slid
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sendepd);
 
-        PhotoSelector.builder()
-            .setSingle(true)
-            .setCrop(true)
-            .setShowCamera(true) // FIXME: URI is broken
-            .setCropMode(PhotoSelector.CROP_RECTANG)
-            .setMaterialDesign(true)
-            .setToolBarColor(ContextCompat.getColor(this, R.color.colorPrimary))
-            .setBottomBarColor(ContextCompat.getColor(this, R.color.colorPrimary))
-            .setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimary))
-            .start(SendEpdBase.this, CROP);
+        showChooseDialog();
 
         mImageCanvas = findViewById(R.id.image_view_canvas);
         mImageCanvas.setOrientation(SubsamplingScaleImageView.ORIENTATION_USE_EXIF);
@@ -139,22 +124,75 @@ public abstract class SendEpdBase extends FullScreenActivityBase implements Slid
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Uri resultUri;
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK && data != null && requestCode == CROP && (resultUri = PhotoSelector.getCropImageUri(data)) != null) {
-            mImageCanvas.setImage(ImageSource.uri(resultUri));
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case FileUtils.TAKE_PHOTO:
+                    if (tmpUri != null) {
+                        FileUtils.startCrop(this, tmpUri);
+                    }
+                    break;
+                case FileUtils.CHOOSE_PHOTO:
+                    if (data != null) {
+                        Uri selectedUri = data.getData();
+                        if (selectedUri != null) {
+                            FileUtils.startCrop(this, selectedUri);
+                        }
+                    }
+                    break;
+                case UCrop.REQUEST_CROP:
+                    if (data != null) {
+                        Uri resultUri = UCrop.getOutput(data);
+                        if (resultUri != null) {
+                            mImageCanvas.setImage(ImageSource.uri(resultUri));
 
-            tmpUri = resultUri;
-            mSelectedImagePath = FileUtils.getPathFromUri(this, tmpUri);
+                            mSelectedImagePath = FileUtils.getPathFromUri(this, resultUri);
 
-            mOrigBitmap = decodeUriAsBitmap(resultUri);
-            int angle = readImageExif(mSelectedImagePath);
-            if (readImageExif(mSelectedImagePath) != 0) {
-                mOrigBitmap = rotateImage(mOrigBitmap, angle);
+                            mOrigBitmap = decodeUriAsBitmap(resultUri);
+                            int angle = FileUtils.readImageExif(mSelectedImagePath);
+                            if (FileUtils.readImageExif(mSelectedImagePath) != 0) {
+                                mOrigBitmap = FileUtils.rotateImage(mOrigBitmap, angle);
+                            }
+
+                            onImageSelected(mSelectedImagePath);
+                        }
+                    }
+                    break;
             }
-
-            onImageSelected(mSelectedImagePath);
         }
+    }
+
+
+    private void showChooseDialog() {
+        AlertDialog.Builder choiceBuilder = new AlertDialog.Builder(this);
+        choiceBuilder.setCancelable(false);
+        choiceBuilder
+            .setTitle("选择图片")
+            .setSingleChoiceItems(new String[]{"拍照上传", "从相册选择"}, -1,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case 0://拍照
+                                tmpUri = FileUtils.takePhoto(SendEpdBase.this);
+                                break;
+                            case 1:// 从相册选择
+                                FileUtils.choosePhotoFromAlbum(SendEpdBase.this);
+                                break;
+                            default:
+                                break;
+                        }
+                        dialog.dismiss();
+                    }
+                })
+            .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+
+                }
+            });
+
+        choiceBuilder.create();
+        choiceBuilder.show();
     }
 
     private Bitmap decodeUriAsBitmap(Uri uri) {
@@ -257,77 +295,15 @@ public abstract class SendEpdBase extends FullScreenActivityBase implements Slid
 
     protected void updateCanvas(final Bitmap bitmap, final String _imagePath) {
         mImageCanvas.post(() -> {
-            int angle = readImageExif(_imagePath);
-
-            if (angle != 0) {
-                mResultBitmap = rotateImage(bitmap, angle);
-            } else {
-                mResultBitmap = bitmap;
-            }
+            mResultBitmap = bitmap;
             mImageCanvas.setImage(ImageSource.bitmap(mResultBitmap.copy(Bitmap.Config.ARGB_8888, true)));
         });
     }
 
-    public int readImageExif(String path) {
-        int degree = 0;
-        try {
-            ExifInterface exifInterface = new ExifInterface(path);
-            int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-            switch (orientation) {
-                case ExifInterface.ORIENTATION_ROTATE_90:
-                    degree = 90;
-                    break;
-                case ExifInterface.ORIENTATION_ROTATE_180:
-                    degree = 180;
-                    break;
-                case ExifInterface.ORIENTATION_ROTATE_270:
-                    degree = 270;
-                    break;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return degree;
-    }
-
-    public Bitmap rotateImage(Bitmap bm, int orientationDegree) {
-        Matrix m = new Matrix();
-        m.setRotate(orientationDegree, (float) bm.getWidth() / 2, (float) bm.getHeight() / 2);
-        float targetX, targetY;
-
-        if (orientationDegree == 90) {
-            targetX = bm.getHeight();
-            targetY = 0;
-        } else {
-            targetX = bm.getHeight();
-            targetY = bm.getWidth();
-        }
-
-        final float[] values = new float[9];
-        m.getValues(values);
-
-        float x1 = values[Matrix.MTRANS_X];
-        float y1 = values[Matrix.MTRANS_Y];
-
-        m.postTranslate(targetX - x1, targetY - y1);
-
-        Bitmap bm1 = Bitmap.createBitmap(bm.getHeight(), bm.getWidth(), Bitmap.Config.ARGB_8888);
-
-        Paint paint = new Paint();
-        Canvas canvas = new Canvas(bm1);
-        canvas.drawBitmap(bm, m, paint);
-
-        return bm1;
-    }
 
     @Override
     public void onButtonClick() {
-        PhotoSelector.builder()
-            .setSingle(true)
-            .setCrop(true)
-            .setShowCamera(true)
-            .setCropMode(PhotoSelector.CROP_RECTANG)
-            .start(SendEpdBase.this, CROP);
+        showChooseDialog();
     }
 
     public void playShatterAnimation() {

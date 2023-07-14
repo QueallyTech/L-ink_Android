@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
+    <permission android:name="com.queallytech.nfc.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" tools:node="remove" />
+    <uses-permission android:name="com.queallytech.nfc.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" tools:node="remove" />
     <uses-feature android:name="android.hardware.touchscreen.multitouch" android:required="false"/>
     <uses-feature android:name="android.hardware.touchscreen.multitouch.distinct" android:required="false"/>
     <uses-feature android:name="android.software.leanback" android:required="false"/>
@@ -8,7 +11,7 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.NFC"/>
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
 
@@ -45,12 +48,8 @@
                 android:name="android.nfc.action.TECH_DISCOVERED"
                 android:resource="@xml/filter_nfc" />
         </activity>
-        <activity
-            android:name="com.queallytech.nfc.activity.QrCodeActivity"
-            android:theme="@style/Theme.PhotosSelector" />
-        <activity
-            android:name="com.queallytech.nfc.activity.NoteActivity"
-            android:theme="@style/Theme.PhotosSelector" />
+        <activity android:name="com.queallytech.nfc.activity.QrCodeActivity" />
+        <activity android:name="com.queallytech.nfc.activity.NoteActivity" />
         <activity
             android:name="com.queallytech.nfc.activity.SendEpdActivity"
             android:exported="true"
@@ -58,19 +57,7 @@
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="unspecified"
-            android:theme="@style/Theme.UCrop" />
-        <activity
-            android:name="com.winfo.photoselector.ImageSelectorActivity"
-            android:configChanges="screenSize|orientation|keyboardHidden"
-            android:theme="@style/Theme.PhotosSelector" />
-        <activity
-            android:name="com.winfo.photoselector.PreviewActivity"
-            android:configChanges="screenSize|orientation|keyboardHidden"
-            android:theme="@style/Theme.PhotosSelector" />
-        <activity
-            android:name="com.winfo.photoselector.RvPreviewActivity"
-            android:configChanges="screenSize|orientation|keyboardHidden"
-            android:theme="@style/Theme.PhotosSelector" />
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

@@ -1,14 +1,40 @@
 package com.queallytech.nfc.utils;
 
+import android.app.Activity;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.exifinterface.media.ExifInterface;
+
+import com.queallytech.nfc.R;
+import com.yalantis.ucrop.UCrop;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class FileUtils {
+
+    public static final int TAKE_PHOTO = 1;
+    public static final int CHOOSE_PHOTO = 2;
+
     public static String getPathFromUri(Context context, Uri uri) {
         Uri mediaUri;
         if (uri == null) {
@@ -82,5 +108,110 @@ public class FileUtils {
             }
             return null;
         }
+    }
+
+    public static void choosePhotoFromAlbum(Activity activity) {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (ContextCompat.checkSelfPermission(activity, "android.permission.READ_MEDIA_IMAGES") != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(activity, new String[]{"android.permission.READ_MEDIA_IMAGES"}, 1);
+            } else {
+                openAlbum(activity);
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(activity, "android.permission.WRITE_EXTERNAL_STORAGE") != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(activity, new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 1);
+            } else {
+                openAlbum(activity);
+            }
+        }
+    }
+
+    public static void openAlbum(Activity activity) {
+        Intent intent = new Intent("android.intent.action.GET_CONTENT");
+        intent.setType("image/*");
+        activity.startActivityForResult(intent, CHOOSE_PHOTO);
+    }
+
+    public static Uri takePhoto(Activity activity) {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        File image = null;
+        try {
+            String imageFileName = "photo_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            image = File.createTempFile(imageFileName, ".jpg", activity.getExternalCacheDir());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Uri imageUri = FileProvider.getUriForFile(activity, "com.queallytech.nfc.fileprovider", image);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+        activity.startActivityForResult(intent, TAKE_PHOTO);
+        return imageUri;
+    }
+
+    public static void startCrop(Activity activity, @NonNull Uri uri) {
+
+        String imageFileName = "photo_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        UCrop uCrop = UCrop.of(uri, Uri.fromFile(new File(activity.getCacheDir(), imageFileName + ".jpg")));
+
+        UCrop.Options options = new UCrop.Options();
+        options.setCompressionQuality(100);
+
+        options.setToolbarColor(ContextCompat.getColor(activity, R.color.colorPrimary));
+        options.setStatusBarColor(ContextCompat.getColor(activity, R.color.colorPrimary));
+        options.setFreeStyleCropEnabled(true);
+
+        uCrop.withOptions(options);
+        uCrop.start(activity);
+    }
+
+    public static Bitmap rotateImage(Bitmap bm, int orientationDegree) {
+        Matrix m = new Matrix();
+        m.setRotate(orientationDegree, (float) bm.getWidth() / 2, (float) bm.getHeight() / 2);
+        float targetX, targetY;
+
+        if (orientationDegree == 90) {
+            targetX = bm.getHeight();
+            targetY = 0;
+        } else {
+            targetX = bm.getHeight();
+            targetY = bm.getWidth();
+        }
+
+        final float[] values = new float[9];
+        m.getValues(values);
+
+        float x1 = values[Matrix.MTRANS_X];
+        float y1 = values[Matrix.MTRANS_Y];
+
+        m.postTranslate(targetX - x1, targetY - y1);
+
+        Bitmap bm1 = Bitmap.createBitmap(bm.getHeight(), bm.getWidth(), Bitmap.Config.ARGB_8888);
+
+        Paint paint = new Paint();
+        Canvas canvas = new Canvas(bm1);
+        canvas.drawBitmap(bm, m, paint);
+
+        return bm1;
+    }
+
+    public static int readImageExif(String path) {
+        int degree = 0;
+        try {
+            ExifInterface exifInterface = new ExifInterface(path);
+            int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            switch (orientation) {
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    degree = 90;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_180:
+                    degree = 180;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_270:
+                    degree = 270;
+                    break;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return degree;
     }
 }

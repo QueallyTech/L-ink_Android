@@ -1,11 +1,9 @@
 package com.queallytech.nfc.activity;
 
 import android.app.PendingIntent;
-import android.content.ContentUris;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -15,7 +13,6 @@ import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -28,11 +25,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 
 import com.queallytech.nfc.R;
+import com.queallytech.nfc.utils.FileUtils;
 import com.queallytech.nfc.utils.QRCodeUtil;
 import com.queallytech.nfc.utils.st25dv.ST25DVTransferTaskEpd;
 import com.queallytech.nfc.utils.st25dv.TagDiscovery;
@@ -42,6 +37,7 @@ import com.st.st25sdk.TagCache;
 import com.st.st25sdk.TagHelper;
 import com.st.st25sdk.ndef.NDEFRecord;
 import com.st.st25sdk.type5.st25dv.ST25DVTag;
+import com.yalantis.ucrop.UCrop;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -49,11 +45,6 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
-
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class QrCodeActivity extends AppCompatActivity implements View.OnClickListener, TagDiscovery.onTagDiscoveryCompletedListener {
     private static final String TAG = "QrCodeActivity";
@@ -64,9 +55,6 @@ public class QrCodeActivity extends AppCompatActivity implements View.OnClickLis
     private EditText et_width, et_height;
     private String error_correction_level, margin; // 容错率，空白边距
     private int color_black, color_white; // 黑色色块，白色色块
-
-    public static final int TAKE_PHOTO = 1; // 拍照
-    public static final int CHOOSE_PHOTO = 2; // 从相册选择图片
     private Uri imageUri;
     private Bitmap logoBitmap; // logo图片
     private Bitmap blackBitmap; // 代替黑色色块的图片
@@ -287,10 +275,10 @@ public class QrCodeActivity extends AppCompatActivity implements View.OnClickLis
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0://拍照
-                                takePhoto();
+                                imageUri = FileUtils.takePhoto(QrCodeActivity.this);
                                 break;
                             case 1:// 从相册选择
-                                choosePhotoFromAlbum();
+                                FileUtils.choosePhotoFromAlbum(QrCodeActivity.this);
                                 break;
                             default:
                                 break;
@@ -333,42 +321,13 @@ public class QrCodeActivity extends AppCompatActivity implements View.OnClickLis
         choiceBuilder.show();
     }
 
-    public void takePhoto() {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        File image = null;
-        try {
-            String imageFileName = "photo_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            ;
-            image = File.createTempFile(imageFileName, ".jpg", getExternalCacheDir());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        this.imageUri = FileProvider.getUriForFile(this, "com.queallytech.nfc.fileprovider", image);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, this.imageUri);
-        startActivityForResult(intent, 1);
-    }
-
-    public void choosePhotoFromAlbum() {
-        if (ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE") != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 1);
-        } else {
-            openAlbum();
-        }
-    }
-
-    private void openAlbum() {
-        Intent intent = new Intent("android.intent.action.GET_CONTENT");
-        intent.setType("image/*");
-        startActivityForResult(intent, CHOOSE_PHOTO);
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case 1:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    openAlbum();
+                    FileUtils.openAlbum(this);
                 } else {
                     Toast.makeText(this, "你拒绝了权限申请，可能无法打开相册哟", Toast.LENGTH_SHORT).show();
                 }
@@ -380,76 +339,51 @@ public class QrCodeActivity extends AppCompatActivity implements View.OnClickLis
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case TAKE_PHOTO:
-                if (resultCode == RESULT_OK) {
-                    try {
-                        if (remark == 0) {//logo
-                            logoBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
-                            // 将拍摄的照片显示出来
-                            picture_logo.setImageBitmap(logoBitmap);
-                        } else if (remark == 1) {//black
-                            blackBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
-                            picture_black.setImageBitmap(blackBitmap);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case FileUtils.TAKE_PHOTO:
+                    if (imageUri != null) {
+                        FileUtils.startCrop(this, imageUri);
                     }
-                }
-                break;
-            case CHOOSE_PHOTO:
-                if (resultCode == RESULT_OK) {
-                    handleImage(data);
-                }
-                break;
-        }
-    }
-
-    private void handleImage(Intent data) {
-        String imagePath = null;
-        Uri uri = data.getData();
-        Log.d("TAG", "handleImageOnKitKat: uri is " + uri);
-        if (DocumentsContract.isDocumentUri(this, uri)) {
-            String docId = DocumentsContract.getDocumentId(uri);
-            if ("com.android.providers.media.documents".equals(uri.getAuthority())) {
-                String id = docId.split(":")[1];
-                String selection = "_id=" + id;
-                imagePath = getImagePath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, selection);
-            } else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())) {
-                Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.valueOf(docId).longValue());
-                imagePath = getImagePath(contentUri, null);
+                    break;
+                case FileUtils.CHOOSE_PHOTO:
+                    if (data != null) {
+                        Uri selectedUri = data.getData();
+                        if (selectedUri != null) {
+                            FileUtils.startCrop(this, selectedUri);
+                        }
+                    }
+                    break;
+                case UCrop.REQUEST_CROP:
+                    if (data != null) {
+                        Uri resultUri = UCrop.getOutput(data);
+                        if (resultUri != null) {
+                            String imagePath = FileUtils.getPathFromUri(this, resultUri);
+                            displayImage(imagePath);
+                        }
+                    }
+                    break;
             }
-        } else if ("content".equalsIgnoreCase(uri.getScheme())) {
-            imagePath = getImagePath(uri, null);
-        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
-            imagePath = uri.getPath();
+        } else if (requestCode == UCrop.RESULT_ERROR) {
+            Log.e(TAG, "handleCropError: ", UCrop.getError(data));
         }
-        displayImage(imagePath);
-    }
-
-    private String getImagePath(Uri uri, String selection) {
-        String path = null;
-        // 通过Uri和selection来获取真实的图片路径
-        Cursor cursor = getContentResolver().query(uri, null, selection, null, null);
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
-            }
-            cursor.close();
-        }
-        return path;
     }
 
     private void displayImage(String imagePath) {
         if (imagePath != null) {
-            if (remark == 0) {//logo
-                logoBitmap = BitmapFactory.decodeFile(imagePath);
-                // 显示图片
+            int angle = FileUtils.readImageExif(imagePath);
+            if (remark == 0) {
+                logoBitmap = BitmapFactory.decodeFile(imagePath); //logo
+                if (FileUtils.readImageExif(imagePath) != 0) {
+                    logoBitmap = FileUtils.rotateImage(logoBitmap, angle);
+                }
                 picture_logo.setImageBitmap(logoBitmap);
-            } else if (remark == 1) {//black
-                blackBitmap = BitmapFactory.decodeFile(imagePath);
+            } else if (remark == 1) {
+                blackBitmap = BitmapFactory.decodeFile(imagePath); //black
+                if (FileUtils.readImageExif(imagePath) != 0) {
+                    blackBitmap = FileUtils.rotateImage(blackBitmap, angle);
+                }
                 picture_black.setImageBitmap(blackBitmap);
-            } else {
             }
         } else {
             Toast.makeText(this, "获取图片失败", Toast.LENGTH_SHORT).show();
