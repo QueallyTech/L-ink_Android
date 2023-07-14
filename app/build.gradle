@@ -11,7 +11,7 @@ android {
         applicationId 'com.queallytech.nfc'
         minSdk 27
         //noinspection OldTargetApi,ExpiredTargetSdkVersion
-        targetSdk 29
+        targetSdk 33
         versionCode 2
         versionName "1.0"
         externalNativeBuild {
