@@ -6,7 +6,6 @@
     <uses-permission android:name="com.queallytech.nfc.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" tools:node="remove" />
     <uses-feature android:name="android.hardware.touchscreen.multitouch" android:required="false"/>
     <uses-feature android:name="android.hardware.touchscreen.multitouch.distinct" android:required="false"/>
-    <uses-feature android:name="android.software.leanback" android:required="false"/>
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.VIBRATE"/>
