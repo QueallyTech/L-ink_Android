@@ -41,6 +41,14 @@
                     android:scheme="https" />
             </intent-filter>
             <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data
+                    android:scheme="vnd.android.nfc"
+                    android:host="ext"
+                    android:pathPrefix="/com.queallytech:nfc"/>
+            </intent-filter>
+            <intent-filter>
                 <action android:name="android.nfc.action.TECH_DISCOVERED" />
             </intent-filter>
 
