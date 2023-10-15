@@ -1,6 +1,7 @@
 # L-ink_Android
 
-Android client for upstream: [L-ink_Card](https://github.com/peng-zhihui/L-ink_Card)
+Android client for upstream: [L-ink_Card](https://github.com/peng-zhihui/L-ink_Card)  
+Use with this firmware for best experience: [L-ink_Firmware](https://github.com/QueallyTech/L-ink_firmware)  
 
 This client is **reverse-engineered** as the original author no longer maintains it,no source code is provided and it is only available in ARMv7-A(32bit)  
 
